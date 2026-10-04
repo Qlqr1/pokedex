@@ -3,6 +3,9 @@ import 'move_list_screen.dart';
 import 'pokemon_group_screen.dart';
 import 'locations_group_screen.dart';
 import 'item_list_screen.dart';
+import 'machine_list_screen.dart';
+import 'berry_list_screen.dart';
+import 'generation_list_screen.dart';
 
 class _ApiGroup {
   final String title;
@@ -18,11 +21,19 @@ class _ApiGroup {
 
 // Não é const porque os builders são funções.
 final _groups = <_ApiGroup>[
-  const _ApiGroup('Berries', Icons.eco),
+  _ApiGroup(
+    'Berries',
+    Icons.eco,
+    builder: (_) => const BerryListScreen(),
+  ),
   const _ApiGroup('Contests', Icons.emoji_events),
   const _ApiGroup('Currencies', Icons.attach_money),
   const _ApiGroup('Encounters', Icons.explore),
-  const _ApiGroup('Games', Icons.sports_esports),
+  _ApiGroup(
+    'Games',
+    Icons.sports_esports,
+    builder: (_) => const GenerationListScreen(),
+  ),
   _ApiGroup(
     'Items',
     Icons.backpack,
@@ -33,7 +44,11 @@ final _groups = <_ApiGroup>[
     Icons.map,
     builder: (_) => const LocationsGroupScreen(),
   ),
-  const _ApiGroup('Machines', Icons.album),
+  _ApiGroup(
+    'Machines',
+    Icons.album,
+    builder: (_) => const MachineListScreen(),
+  ),
   _ApiGroup(
     'Moves',
     Icons.flash_on,

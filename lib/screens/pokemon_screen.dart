@@ -14,6 +14,9 @@ import 'ability_screen.dart';
 import '../models/location.dart';
 import '../repositories/location_repository.dart';
 import '../widgets/pokemon_encounters_view.dart';
+import '../models/dex.dart';
+import '../repositories/dex_repository.dart';
+import '../widgets/pokemon_dex_view.dart';
 
 /// Página específica de um Pokémon.
 /// Recebe o [Pokemon] já carregado pela lista e busca o restante (espécie,
@@ -43,6 +46,8 @@ class _PokemonScreenState extends State<PokemonScreen> {
   // Dados da espécie: iguais para todas as formas.
   late final Future<PokemonSpecies> _species;
   late final Future<EvolutionChain?> _evolution;
+  late final Future<SpeciesDex> _dex;
+  
 
   // Dados da forma selecionada (tipos, status, habilidades, imagens...).
   late Pokemon _current;
@@ -62,6 +67,7 @@ class _PokemonScreenState extends State<PokemonScreen> {
     _defense = _repository.getDefenseMultipliers(_current);
     _evolution = _repository.getEvolutionChainOf(_current);
     _encounters = LocationRepository.instance.getPokemonEncounters(_current.id);
+    _dex = DexRepository.instance.getSpeciesDex(_current.species.name);
   }
 
   Future<void> _openPokemon(int id) async {
@@ -83,7 +89,7 @@ class _PokemonScreenState extends State<PokemonScreen> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 6,
+      length: 7,
       child: Scaffold(
         body: NestedScrollView(
           headerSliverBuilder: (context, innerBoxIsScrolled) => [
@@ -107,6 +113,7 @@ class _PokemonScreenState extends State<PokemonScreen> {
                   tabs: [
                     Tab(text: 'Sobre'),
                     Tab(text: 'Status'),
+                    Tab(text: 'Pokédex'),
                     Tab(text: 'Evolução'),
                     Tab(text: 'Onde Achar'),
                     Tab(text: 'Golpes'),
@@ -120,6 +127,7 @@ class _PokemonScreenState extends State<PokemonScreen> {
             children: [
               _buildAboutTab(),
               _buildStatsTab(),
+              _buildDexTab(),
               _buildEvolutionTab(),
               _buildEncountersTab(),
               _buildMovesTab(),
@@ -162,6 +170,19 @@ class _PokemonScreenState extends State<PokemonScreen> {
         _AsyncSection<Map<String, double>>(
           future: _defense,
           builder: _buildDefense,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDexTab() {
+    return ListView(
+      key: const PageStorageKey('tab-pokedex'),
+      padding: const EdgeInsets.all(16),
+      children: [
+        _AsyncSection<SpeciesDex>(
+          future: _dex,
+          builder: (dex) => PokemonDexView(dex: dex),
         ),
       ],
     );
@@ -333,12 +354,9 @@ class _PokemonScreenState extends State<PokemonScreen> {
   Widget _buildSpecies(PokemonSpecies s) {
     // A PokéAPI não tem textos em português; usamos o inglês.
     final genus = s.genusIn('en');
-    final flavor = s.flavorTextIn('en');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (genus != null)
-          Text(genus, style: const TextStyle(fontStyle: FontStyle.italic)),
         if (s.isLegendary || s.isMythical || s.isBaby)
           Padding(
             padding: const EdgeInsets.only(top: 6),
@@ -351,11 +369,21 @@ class _PokemonScreenState extends State<PokemonScreen> {
               ],
             ),
           ),
-        if (flavor != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Text(flavor),
+        if (genus != null)
+          Text.rich(
+            TextSpan(
+              children: [
+                const TextSpan(
+                  text: 'Espécie: ',
+                ),
+                TextSpan(
+                  text: genus,
+                  style: const TextStyle(fontStyle: FontStyle.italic),
+                ),
+              ],
+            ),
           ),
+        
         Padding(
           padding: const EdgeInsets.only(top: 8),
           child: Text(
