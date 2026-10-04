@@ -1,0 +1,17 @@
+export 'ability.dart';
+export 'evolution_chain.dart';
+export 'evolution_detail.dart';
+export 'item.dart';
+export 'move.dart';
+export 'named_api_resource.dart';
+export 'pokemon.dart';
+export 'pokemon_ability.dart';
+export 'pokemon_encounter.dart';
+export 'pokemon_form.dart';
+export 'pokemon_move.dart';
+export 'pokemon_species.dart';
+export 'pokemon_sprites.dart';
+export 'pokemon_stat.dart';
+export 'pokemon_type.dart';
+export 'shared.dart';
+export 'type_info.dart';
