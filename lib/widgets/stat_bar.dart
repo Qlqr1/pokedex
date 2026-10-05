@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'stat_colors.dart';
+
 /// Linha de estatística: nome, valor e barra proporcional ao valor máximo.
+/// A cor segue a escala do Pokémon Database (veja [statColor]).
 class StatBar extends StatelessWidget {
   final String label;
   final int value;
@@ -12,13 +15,6 @@ class StatBar extends StatelessWidget {
     required this.value,
     this.max = 255,
   });
-
-  Color get _color {
-    if (value < 50) return Colors.redAccent;
-    if (value < 80) return Colors.orange;
-    if (value < 110) return Colors.lightGreen;
-    return Colors.teal;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +38,7 @@ class StatBar extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: (value / max).clamp(0.0, 1.0),
                 minHeight: 8,
-                color: _color,
+                color: statColor(value),
                 backgroundColor: Colors.grey.shade200,
               ),
             ),

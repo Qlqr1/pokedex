@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../models/location.dart';
 import '../repositories/location_repository.dart';
+import '../utils/encounter_labels.dart';
 import '../utils/string_utils.dart';
+import '../widgets/open_conditions.dart';
 import '../widgets/open_pokemon.dart';
+import 'encounter_method_screen.dart';
 
 /// Página de uma área: métodos de encontro e Pokémon que aparecem nela,
 /// com filtro por jogo.
@@ -79,12 +82,23 @@ class _LocationAreaScreenState extends State<LocationAreaScreen> {
       final c = b.$2.bestChance.compareTo(a.$2.bestChance);
       return c != 0 ? c : a.$1.pokemon.name.compareTo(b.$1.pokemon.name);
     });
+    final conditions = <String>{};
+    for (final e in area.encounters) {
+      for (final v in e.versions) {
+        if (_version != null && v.version != _version) continue;
+        for (final d in v.details) {
+          conditions.addAll(d.conditions);
+        }
+      }
+    }
+    final conditionList = conditions.toList()..sort();
 
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text(widget.locationTitle ?? area.locationName.pretty,
-            style: TextStyle(color: Colors.grey.shade600)),
+        if (widget.locationTitle != null)
+          Text(widget.locationTitle!,
+              style: TextStyle(color: Colors.grey.shade600)),
         if (area.encounterMethods.isNotEmpty) ...[
           Padding(
             padding: const EdgeInsets.only(top: 16, bottom: 8),
@@ -94,7 +108,31 @@ class _LocationAreaScreenState extends State<LocationAreaScreen> {
             spacing: 8,
             runSpacing: 4,
             children: area.encounterMethods
-                .map((m) => Chip(label: Text(m.pretty)))
+                .map((m) => ActionChip(
+                      label: Text(methodLabel(m)),
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) =>
+                                EncounterMethodScreen(methodName: m)),
+                      ),
+                    ))
+                .toList(),
+          ),
+        ],
+        if (conditionList.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.only(top: 16, bottom: 8),
+            child: Text('Condições', style: titleStyle),
+          ),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: conditionList
+                .map((c) => ActionChip(
+                      label: Text(conditionLabel(c)),
+                      onPressed: () => openConditions(context, [c]),
+                    ))
                 .toList(),
           ),
         ],

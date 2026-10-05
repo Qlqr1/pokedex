@@ -5,6 +5,7 @@ import '../screens/location_area_screen.dart';
 import '../utils/encounter_labels.dart';
 import '../utils/string_utils.dart';
 import '../models/named_ref.dart';
+import 'open_conditions.dart';
 
 /// "Onde achar": encontros do Pokémon agrupados por jogo.
 class PokemonEncountersView extends StatelessWidget {
@@ -112,13 +113,20 @@ class _AreaBlock extends StatelessWidget {
               children: [
                 for (final l in m.lines)
                   if (l.condition != null || l.chance != null)
-                    Chip(
-                      visualDensity: VisualDensity.compact,
-                      label: Text([
-                        if (l.condition != null) conditionLabel(l.condition!),
-                        if (l.chance != null) '${l.chance}%',
-                      ].join(' ')),
-                    ),
+                    l.condition == null
+                        ? Chip(
+                            visualDensity: VisualDensity.compact,
+                            label: Text('${l.chance}%'),
+                          )
+                        : ActionChip(
+                            visualDensity: VisualDensity.compact,
+                            label: Text([
+                              conditionLabel(l.condition!),
+                              if (l.chance != null) '${l.chance}%',
+                            ].join(' ')),
+                            onPressed: () => openConditions(
+                                context, l.condition!.split('+')),
+                          ),
               ],
             ),
           ],

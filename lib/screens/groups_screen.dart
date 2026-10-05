@@ -6,6 +6,10 @@ import 'item_list_screen.dart';
 import 'machine_list_screen.dart';
 import 'berry_list_screen.dart';
 import 'generation_list_screen.dart';
+import 'encounters_group_screen.dart';
+import 'currency_list_screen.dart';
+import 'contests_group_screen.dart';
+import 'evolution_group_screen.dart';
 
 class _ApiGroup {
   final String title;
@@ -26,9 +30,26 @@ final _groups = <_ApiGroup>[
     Icons.eco,
     builder: (_) => const BerryListScreen(),
   ),
-  const _ApiGroup('Contests', Icons.emoji_events),
-  const _ApiGroup('Currencies', Icons.attach_money),
-  const _ApiGroup('Encounters', Icons.explore),
+  _ApiGroup(
+    'Contests',
+    Icons.emoji_events,
+    builder: (_) => const ContestsGroupScreen(),
+  ),
+  _ApiGroup(
+    'Currencies',
+    Icons.attach_money,
+    builder: (_) => const CurrencyListScreen(),
+  ),
+  _ApiGroup(
+    'Encounters',
+    Icons.explore,
+    builder: (_) => const EncountersGroupScreen(),
+  ),
+  _ApiGroup(
+    'Evolution',
+    Icons.trending_up,
+    builder: (_) => const EvolutionGroupScreen(),
+  ),
   _ApiGroup(
     'Games',
     Icons.sports_esports,
