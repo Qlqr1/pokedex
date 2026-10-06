@@ -17,6 +17,9 @@ import '../widgets/pokemon_encounters_view.dart';
 import '../models/dex.dart';
 import '../repositories/dex_repository.dart';
 import '../widgets/pokemon_dex_view.dart';
+import '../widgets/species_extras_view.dart';
+import 'stat_screen.dart';
+import 'type_screen.dart';
 
 /// Página específica de um Pokémon.
 /// Recebe o [Pokemon] já carregado pela lista e busca o restante (espécie,
@@ -156,6 +159,11 @@ class _PokemonScreenState extends State<PokemonScreen> {
         _buildInfoRow(),
         _SectionTitle('Habilidades'),
         _buildAbilities(),
+        _SectionTitle('Características'),
+        _AsyncSection<SpeciesDex>(
+          future: _dex,
+          builder: (dex) => SpeciesExtrasView(dex: dex),
+        ),
       ],
     );
   }
@@ -334,7 +342,7 @@ class _PokemonScreenState extends State<PokemonScreen> {
         Wrap(
           spacing: 8,
           alignment: WrapAlignment.center,
-          children: _p.typeNames.map((t) => TypeBadge(type: t)).toList(),
+          children: _p.typeNames.map(_typeLink).toList(),
         ),
       ],
     );
@@ -402,6 +410,11 @@ class _PokemonScreenState extends State<PokemonScreen> {
       ..._p.stats.map((s) => StatBar(
             label: _statLabels[s.stat.name] ?? s.stat.name.pretty,
             value: s.baseStat,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => StatScreen(statName: s.stat.name),
+              ),
+            ),
           )),
       Padding(
         padding: const EdgeInsets.only(top: 4),
@@ -462,13 +475,23 @@ class _PokemonScreenState extends State<PokemonScreen> {
               spacing: 6,
               runSpacing: 6,
               children: entries
-                  .map((e) => TypeBadge(type: e.key, suffix: _multiplier(e.value)))
+                  .map((e) => _typeLink(e.key, suffix: _multiplier(e.value)))
                   .toList(),
             ),
           ],
       ],
     );
   }
+
+  Widget _typeLink(String type, {String? suffix}) => InkWell(
+    borderRadius: BorderRadius.circular(20),
+    onTap: () => Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => TypeScreen(typeName: type)),
+    ),
+    child: suffix == null
+      ? TypeBadge(type: type)
+      : TypeBadge(type: type, suffix: suffix),
+  );
 
   String _multiplier(double v) {
     if (v == 4) return '×4';

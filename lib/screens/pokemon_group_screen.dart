@@ -1,38 +1,43 @@
 import 'package:flutter/material.dart';
+
 import 'ability_list_screen.dart';
+import 'characteristic_list_screen.dart';
+import 'egg_group_list_screen.dart';
+import 'habitat_list_screen.dart';
+import 'nature_list_screen.dart';
+import 'pokeathlon_stat_list_screen.dart';
 import 'pokemon_list_screen.dart';
+import 'stat_list_screen.dart';
+import 'type_list_screen.dart';
 
-class _Endpoint {
-  final String path;
-  final String? subtitle; // null = ainda não implementado
-  const _Endpoint(this.path, {this.subtitle});
-
-  bool get enabled => subtitle != null;
+class _Entry {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final WidgetBuilder builder;
+  const _Entry(this.icon, this.title, this.subtitle, this.builder);
 }
 
-const _endpoints = [
-  _Endpoint('pokemon', subtitle: 'Lista de pokémons'), // principal
-  _Endpoint('pokemon-species'),
-  _Endpoint('pokemon-form'),
-  _Endpoint('ability', subtitle: 'Lista de habilidades'),
-  _Endpoint('type'),
-  _Endpoint('stat'),
-  _Endpoint('nature'),
-  _Endpoint('egg-group'),
-  _Endpoint('gender'),
-  _Endpoint('growth-rate'),
-  _Endpoint('characteristic'),
-  _Endpoint('pokemon-color'),
-  _Endpoint('pokemon-habitat'),
-  _Endpoint('pokemon-shape'),
-  _Endpoint('pokeathlon-stat'),
+final _entries = <_Entry>[
+  _Entry(Icons.catching_pokemon, 'Pokémon', 'Lista de todos os Pokémon',
+      (_) => const PokemonListScreen()),
+  _Entry(Icons.auto_awesome, 'Habilidades', 'Lista de habilidades',
+      (_) => const AbilityListScreen()),
+  _Entry(Icons.category, 'Tipos', 'Relações de dano, Pokémon e golpes',
+      (_) => const TypeListScreen()),
+  _Entry(Icons.bar_chart, 'Status', 'HP, Ataque, Defesa, Velocidade...',
+      (_) => const StatListScreen()),
+  _Entry(Icons.psychology, 'Naturezas', 'O que cada natureza aumenta e diminui',
+      (_) => const NatureListScreen()),
+  _Entry(Icons.egg, 'Grupos de ovo', 'Quem pode procriar com quem',
+      (_) => const EggGroupListScreen()),
+  _Entry(Icons.fingerprint, 'Características', 'A frase que indica o maior IV',
+      (_) => const CharacteristicListScreen()),
+  _Entry(Icons.terrain, 'Habitats', 'Onde cada espécie vive',
+      (_) => const HabitatListScreen()),
+  _Entry(Icons.directions_run, 'Status do Pokéathlon', 'Velocidade, Potência, Técnica...',
+      (_) => const PokeathlonStatListScreen()),
 ];
-
-Widget _screenFor(String path) => switch (path) {
-      'pokemon' => const PokemonListScreen(),
-      'ability' => const AbilityListScreen(),
-      _ => throw UnimplementedError(path),
-    };
 
 class PokemonGroupScreen extends StatelessWidget {
   const PokemonGroupScreen({super.key});
@@ -42,21 +47,19 @@ class PokemonGroupScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Pokémon')),
       body: ListView.separated(
-        itemCount: _endpoints.length,
+        itemCount: _entries.length,
         separatorBuilder: (_, __) => const Divider(height: 1),
         itemBuilder: (context, i) {
-          final e = _endpoints[i];
+          final e = _entries[i];
           return ListTile(
-            enabled: e.enabled,
-            title: Text('/${e.path}'),
-            subtitle: Text(e.subtitle ?? 'Em breve'),
-            trailing: e.enabled ? const Icon(Icons.chevron_right) : null,
-            onTap: e.enabled
-                ? () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => _screenFor(e.path)),
-                    )
-                : null,
+            leading: Icon(e.icon),
+            title: Text(e.title),
+            subtitle: Text(e.subtitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: e.builder),
+            ),
           );
         },
       ),

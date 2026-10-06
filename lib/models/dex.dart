@@ -74,11 +74,24 @@ class DexText {
   const DexText({required this.versions, required this.text});
 }
 
-/// Dados de Pokédex de uma espécie: números nas dexes e textos por jogo.
+/// Dados da espécie vindos de /pokemon-species: números nas Pokédexes e
+/// textos por jogo, além de grupos de ovo, gênero, crescimento e habitat.
 class SpeciesDex {
   final List<DexNumber> numbers;
   final List<DexText> texts;
-  const SpeciesDex({required this.numbers, required this.texts});
+  final List<String> eggGroups;
+  final int genderRate; // -1 = sem gênero; 0..8 = oitavos de chance de fêmea
+  final String? growthRate;
+  final String? habitat;
+
+  const SpeciesDex({
+    required this.numbers,
+    required this.texts,
+    required this.eggGroups,
+    required this.genderRate,
+    required this.growthRate,
+    required this.habitat,
+  });
 
   factory SpeciesDex.fromJson(Map<String, dynamic> j) {
     final numbers = (j['pokedex_numbers'] as List)
@@ -103,6 +116,15 @@ class SpeciesDex {
     final texts = byText.entries
         .map((e) => DexText(versions: e.value, text: e.key))
         .toList();
-    return SpeciesDex(numbers: numbers, texts: texts);
+    return SpeciesDex(
+      numbers: numbers,
+      texts: texts,
+      eggGroups: ((j['egg_groups'] ?? []) as List)
+          .map((e) => e['name'] as String)
+          .toList(),
+      genderRate: j['gender_rate'] ?? -1,
+      growthRate: j['growth_rate']?['name'],
+      habitat: j['habitat']?['name'],
+    );
   }
 }
