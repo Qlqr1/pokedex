@@ -28,12 +28,7 @@ class MoveTile extends StatefulWidget {
   final String? leading;
   final VoidCallback? onTap;
 
-  const MoveTile({
-    super.key,
-    required this.moveName,
-    this.leading,
-    this.onTap,
-  });
+  const MoveTile({super.key, required this.moveName, this.leading, this.onTap});
 
   @override
   State<MoveTile> createState() => _MoveTileState();

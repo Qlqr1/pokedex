@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_theme.dart';
+
 /// Campo de busca padrão das listas, com botão de limpar.
 class ListSearchField extends StatefulWidget {
   final String hint;
   final ValueChanged<String> onChanged;
+  final bool autofocus;
 
   const ListSearchField({
     super.key,
     required this.hint,
     required this.onChanged,
+    this.autofocus = false,
   });
 
   @override
@@ -36,11 +40,17 @@ class _ListSearchFieldState extends State<ListSearchField> {
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
       child: TextField(
         controller: _controller,
+        autofocus: widget.autofocus,
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
           prefixIcon: const Icon(Icons.search),
           hintText: widget.hint,
-          border: const OutlineInputBorder(),
+          filled: true,
+          fillColor: AppColors.card,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
+          ),
           isDense: true,
           suffixIcon: _controller.text.isEmpty
               ? null

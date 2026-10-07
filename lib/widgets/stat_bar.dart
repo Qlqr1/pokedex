@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_theme.dart';
 import 'stat_colors.dart';
 
 /// Linha de estatística: nome, valor e barra proporcional ao valor máximo.
@@ -44,7 +45,7 @@ class StatBar extends StatelessWidget {
                   value: (value / max).clamp(0.0, 1.0),
                   minHeight: 8,
                   color: statColor(value),
-                  backgroundColor: Colors.grey.shade200,
+                  backgroundColor: AppColors.track,
                 ),
               ),
             ),

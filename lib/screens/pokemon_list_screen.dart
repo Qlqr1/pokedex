@@ -4,7 +4,9 @@ import '../models/models.dart';
 import '../repositories/pokemon_repository.dart';
 import '../services/pokeapi_service.dart'; // PokeApiException
 import '../utils/search_utils.dart';
+import '../theme/app_theme.dart';
 import '../utils/string_utils.dart';
+import '../utils/type_colors.dart';
 import '../widgets/list_search_field.dart';
 import '../widgets/type_badge.dart';
 import 'pokemon_screen.dart';
@@ -128,7 +130,9 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
       body: Column(
         children: [
           ListSearchField(
-              hint: 'Buscar por nome ou número', onChanged: _onSearch),
+            hint: 'Buscar por nome ou número',
+            onChanged: _onSearch,
+          ),
           Expanded(child: _searching ? _buildSearchResults() : _buildBody()),
         ],
       ),
@@ -167,7 +171,8 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
 
   Widget _buildBody() {
     if (_pokemons.isEmpty) {
-      if (_error != null) return _ErrorView(message: _error!, onRetry: _loadMore);
+      if (_error != null)
+        return _ErrorView(message: _error!, onRetry: _loadMore);
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -175,6 +180,7 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
       onRefresh: _refresh,
       child: ListView.builder(
         controller: _scroll,
+        padding: const EdgeInsets.only(top: 8, bottom: 16),
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: _pokemons.length + ((_hasMore || _error != null) ? 1 : 0),
         itemBuilder: (context, index) {
@@ -183,7 +189,11 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
           }
           // Último item: erro com "tentar de novo" ou indicador de carregamento.
           if (_error != null) {
-            return _ErrorView(message: _error!, onRetry: _loadMore, compact: true);
+            return _ErrorView(
+              message: _error!,
+              onRetry: _loadMore,
+              compact: true,
+            );
           }
           return const Padding(
             padding: EdgeInsets.all(16),
@@ -225,25 +235,43 @@ class _LazyPokemonTileState extends State<_LazyPokemonTile> {
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.hasData) return _PokemonTile(pokemon: snapshot.data!);
-        return ListTile(
-          leading: CircleAvatar(
-            radius: 28,
-            backgroundColor: Colors.grey.shade200,
+        return Container(
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.line),
           ),
-          title: Text(
-            widget.name.pretty,
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-          trailing: snapshot.hasError
-              ? IconButton(
-                  icon: const Icon(Icons.refresh),
-                  onPressed: () => setState(_load),
-                )
-              : const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+          child: Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppColors.track,
+                  borderRadius: BorderRadius.circular(14),
                 ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  widget.name.pretty,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+              snapshot.hasError
+                  ? IconButton(
+                      icon: const Icon(Icons.refresh),
+                      onPressed: () => setState(_load),
+                    )
+                  : const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+            ],
+          ),
         );
       },
     );
@@ -258,35 +286,103 @@ class _PokemonTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sprite = pokemon.sprites.frontDefault;
+    final primary = pokemon.typeNames.isNotEmpty
+        ? pokemon.typeNames.first
+        : 'normal';
+    final colors = typeGradient(primary);
 
-    return ListTile(
-      leading: CircleAvatar(
-        radius: 28,
-        backgroundColor: Colors.grey.shade200,
-        backgroundImage: sprite != null ? NetworkImage(sprite) : null,
-        child: sprite == null ? const Icon(Icons.catching_pokemon) : null,
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.line),
       ),
-      title: Text(
-        '#${pokemon.id.toString().padLeft(4, '0')}  ${pokemon.displayName}',
-        style: const TextStyle(fontWeight: FontWeight.w600),
-      ),
-      subtitle: Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Peso: ${pokemon.weightInKg} kg   Altura: ${pokemon.heightInMeters} m'),
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 6,
-              children: pokemon.typeNames.map((t) => TypeBadge(type: t)).toList(),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => PokemonScreen(pokemon: pokemon)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              children: [
+                // Miniatura sobre gradiente da cor do tipo
+                Container(
+                  width: 58,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: colors,
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      const Icon(
+                        Icons.catching_pokemon,
+                        size: 40,
+                        color: Color.fromRGBO(255, 255, 255, .25),
+                      ),
+                      if (sprite != null)
+                        Image.network(
+                          sprite,
+                          width: 52,
+                          height: 52,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '#${pokemon.id.toString().padLeft(4, '0')}',
+                        style: const TextStyle(
+                          color: AppColors.muted,
+                          fontSize: 11,
+                        ),
+                      ),
+                      Text(
+                        pokemon.displayName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Wrap(
+                        spacing: 5,
+                        runSpacing: 4,
+                        children: pokemon.typeNames
+                            .map((t) => TypeBadge(type: t))
+                            .toList(),
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  '${pokemon.heightInMeters} m\n${pokemon.weightInKg} kg',
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(
+                    color: AppColors.muted,
+                    fontSize: 11,
+                    height: 1.5,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
-      isThreeLine: true,
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => PokemonScreen(pokemon: pokemon)),
       ),
     );
   }
@@ -310,12 +406,17 @@ class _ErrorView extends StatelessWidget {
       children: [
         Text(message, textAlign: TextAlign.center),
         const SizedBox(height: 8),
-        ElevatedButton(onPressed: onRetry, child: const Text('Tentar novamente')),
+        ElevatedButton(
+          onPressed: onRetry,
+          child: const Text('Tentar novamente'),
+        ),
       ],
     );
 
     return compact
         ? Padding(padding: const EdgeInsets.all(16), child: content)
-        : Center(child: Padding(padding: const EdgeInsets.all(24), child: content));
+        : Center(
+            child: Padding(padding: const EdgeInsets.all(24), child: content),
+          );
   }
 }

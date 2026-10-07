@@ -120,10 +120,9 @@ class _PokemonMovesTabState extends State<PokemonMovesTab> {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
             child: Text(
               '${_methodLabel(row)} (${byMethod[row]!.length})',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
           );
         }
@@ -136,9 +135,7 @@ class _PokemonMovesTabState extends State<PokemonMovesTab> {
               ? (entry.level > 0 ? 'Nv. ${entry.level}' : '—')
               : null,
           onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => MoveScreen(moveName: entry.move),
-            ),
+            MaterialPageRoute(builder: (_) => MoveScreen(moveName: entry.move)),
           ),
         );
       },

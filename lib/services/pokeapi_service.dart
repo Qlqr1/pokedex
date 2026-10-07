@@ -50,17 +50,16 @@ class PokeApiService {
     int limit = 20,
     int offset = 0,
   }) async {
-    final json = await _getJson('$baseUrl/$endpoint?limit=$limit&offset=$offset');
+    final json = await _getJson(
+      '$baseUrl/$endpoint?limit=$limit&offset=$offset',
+    );
     return NamedApiResourceList.fromJson(json);
   }
 
   /// Busca uma página já com os detalhes completos de cada Pokémon
   /// (nome, peso, altura, tipos e sprite), mantendo a ordem da Pokédex.
   /// A listagem não traz esses dados, então são feitas N requisições em paralelo.
-  Future<List<Pokemon>> getPokemonPage({
-    int limit = 20,
-    int offset = 0,
-  }) async {
+  Future<List<Pokemon>> getPokemonPage({int limit = 20, int offset = 0}) async {
     final list = await getPokemonList(limit: limit, offset: offset);
     return Future.wait(list.results.map((r) => getPokemonByUrl(r.url)));
   }
@@ -80,12 +79,14 @@ class PokeApiService {
   /// /pokemon-species/{id ou nome}
   Future<PokemonSpecies> getPokemonSpecies(Object idOrName) async =>
       PokemonSpecies.fromJson(
-          await _getJson('$baseUrl/pokemon-species/${_key(idOrName)}'));
+        await _getJson('$baseUrl/pokemon-species/${_key(idOrName)}'),
+      );
 
   /// /pokemon-form/{id ou nome}
   Future<PokemonForm> getPokemonForm(Object idOrName) async =>
       PokemonForm.fromJson(
-          await _getJson('$baseUrl/pokemon-form/${_key(idOrName)}'));
+        await _getJson('$baseUrl/pokemon-form/${_key(idOrName)}'),
+      );
 
   /// /type/{id ou nome}
   Future<TypeInfo> getType(Object idOrName) async =>
@@ -115,7 +116,8 @@ class PokeApiService {
   /// /pokemon/{id ou nome}/encounters (a resposta é uma lista JSON).
   Future<List<PokemonEncounter>> getPokemonEncounters(Object idOrName) async {
     final json = await _getJsonList(
-        '$baseUrl/pokemon/${_key(idOrName)}/encounters');
+      '$baseUrl/pokemon/${_key(idOrName)}/encounters',
+    );
     return json
         .map((e) => PokemonEncounter.fromJson(e as Map<String, dynamic>))
         .toList();

@@ -18,7 +18,7 @@ class PokemonRepository {
   final PokeApiService _service;
 
   PokemonRepository({PokeApiService? service})
-      : _service = service ?? PokeApiService();
+    : _service = service ?? PokeApiService();
 
   final Map<String, Future<NamedApiResourceList>> _lists = {};
   final Map<String, Future<Pokemon>> _pokemon = {};
@@ -39,28 +39,23 @@ class PokemonRepository {
   Future<NamedApiResourceList> getPokemonList({
     int limit = 20,
     int offset = 0,
-  }) =>
-      getResourceList('pokemon', limit: limit, offset: offset);
+  }) => getResourceList('pokemon', limit: limit, offset: offset);
 
   /// Listagem de qualquer grupo da API ('pokemon', 'type', 'item', ...).
   Future<NamedApiResourceList> getResourceList(
     String endpoint, {
     int limit = 20,
     int offset = 0,
-  }) =>
-      _cached(
-        _lists,
-        '$endpoint:$limit:$offset',
-        () => _service.getResourceList(endpoint, limit: limit, offset: offset),
-      );
+  }) => _cached(
+    _lists,
+    '$endpoint:$limit:$offset',
+    () => _service.getResourceList(endpoint, limit: limit, offset: offset),
+  );
 
   /// Página com os detalhes completos de cada Pokémon, na ordem da Pokédex.
   /// Cada Pokémon fica no cache individualmente, então voltar para uma página
   /// já vista não faz nenhuma requisição.
-  Future<List<Pokemon>> getPokemonPage({
-    int limit = 20,
-    int offset = 0,
-  }) async {
+  Future<List<Pokemon>> getPokemonPage({int limit = 20, int offset = 0}) async {
     final list = await getPokemonList(limit: limit, offset: offset);
     return Future.wait(list.results.map((r) => getPokemon(r.name)));
   }
@@ -71,24 +66,24 @@ class PokemonRepository {
 
   /// Pokémon por ID ou nome. Fica guardado sob as duas chaves.
   Future<Pokemon> getPokemon(Object idOrName) async {
-    final pokemon =
-        await _cached(_pokemon, _key(idOrName), () => _service.getPokemon(idOrName));
+    final pokemon = await _cached(
+      _pokemon,
+      _key(idOrName),
+      () => _service.getPokemon(idOrName),
+    );
     _pokemon.putIfAbsent('${pokemon.id}', () => Future.value(pokemon));
     _pokemon.putIfAbsent(pokemon.name, () => Future.value(pokemon));
     return pokemon;
   }
 
   Future<PokemonSpecies> getPokemonSpecies(Object idOrName) => _cached(
-        _species,
-        _key(idOrName),
-        () => _service.getPokemonSpecies(idOrName),
-      );
+    _species,
+    _key(idOrName),
+    () => _service.getPokemonSpecies(idOrName),
+  );
 
-  Future<PokemonForm> getPokemonForm(Object idOrName) => _cached(
-        _forms,
-        _key(idOrName),
-        () => _service.getPokemonForm(idOrName),
-      );
+  Future<PokemonForm> getPokemonForm(Object idOrName) =>
+      _cached(_forms, _key(idOrName), () => _service.getPokemonForm(idOrName));
 
   Future<TypeInfo> getType(Object idOrName) =>
       _cached(_types, _key(idOrName), () => _service.getType(idOrName));

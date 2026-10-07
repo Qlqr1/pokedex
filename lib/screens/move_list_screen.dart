@@ -117,9 +117,9 @@ class _MoveListScreenState extends State<MoveListScreen> {
     await _loadMore();
   }
 
-  void _openMove(String name) => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => MoveScreen(moveName: name)),
-      );
+  void _openMove(String name) => Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => MoveScreen(moveName: name)));
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +128,9 @@ class _MoveListScreenState extends State<MoveListScreen> {
       body: Column(
         children: [
           ListSearchField(
-              hint: 'Buscar por nome ou número', onChanged: _onSearch),
+            hint: 'Buscar por nome ou número',
+            onChanged: _onSearch,
+          ),
           Expanded(child: _searching ? _buildSearchResults() : _buildBody()),
         ],
       ),
@@ -148,8 +150,7 @@ class _MoveListScreenState extends State<MoveListScreen> {
             onRetry: () => setState(() => _allMoves = _loadAllMoves()),
           );
         }
-        final results =
-            snapshot.data!
+        final results = snapshot.data!
             .where((m) => matchesQuery(m.name, m.id, _query))
             .toList();
         if (results.isEmpty) {
@@ -196,7 +197,10 @@ class _MoveListScreenState extends State<MoveListScreen> {
           }
           if (_error != null) {
             return _ErrorView(
-                message: _error!, onRetry: _loadMore, compact: true);
+              message: _error!,
+              onRetry: _loadMore,
+              compact: true,
+            );
           }
           return const Padding(
             padding: EdgeInsets.all(16),
@@ -227,13 +231,16 @@ class _ErrorView extends StatelessWidget {
         Text(message, textAlign: TextAlign.center),
         const SizedBox(height: 8),
         ElevatedButton(
-            onPressed: onRetry, child: const Text('Tentar novamente')),
+          onPressed: onRetry,
+          child: const Text('Tentar novamente'),
+        ),
       ],
     );
 
     return compact
         ? Padding(padding: const EdgeInsets.all(16), child: content)
         : Center(
-            child: Padding(padding: const EdgeInsets.all(24), child: content));
+            child: Padding(padding: const EdgeInsets.all(24), child: content),
+          );
   }
 }

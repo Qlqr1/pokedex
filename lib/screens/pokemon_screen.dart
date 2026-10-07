@@ -20,6 +20,8 @@ import '../widgets/pokemon_dex_view.dart';
 import '../widgets/species_extras_view.dart';
 import 'stat_screen.dart';
 import 'type_screen.dart';
+import '../theme/app_theme.dart';
+import '../utils/type_colors.dart';
 
 /// Página específica de um Pokémon.
 /// Recebe o [Pokemon] já carregado pela lista e busca o restante (espécie,
@@ -50,7 +52,6 @@ class _PokemonScreenState extends State<PokemonScreen> {
   late final Future<PokemonSpecies> _species;
   late final Future<EvolutionChain?> _evolution;
   late final Future<SpeciesDex> _dex;
-  
 
   // Dados da forma selecionada (tipos, status, habilidades, imagens...).
   late Pokemon _current;
@@ -78,9 +79,9 @@ class _PokemonScreenState extends State<PokemonScreen> {
     try {
       final next = await _repository.getPokemon(id);
       if (!mounted) return;
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => PokemonScreen(pokemon: next)),
-      );
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => PokemonScreen(pokemon: next)));
     } on PokeApiException {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -91,39 +92,32 @@ class _PokemonScreenState extends State<PokemonScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = typeGradient(
+      _p.typeNames.isNotEmpty ? _p.typeNames.first : 'normal',
+    );
     return DefaultTabController(
       length: 7,
       child: Scaffold(
         body: NestedScrollView(
           headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            SliverAppBar(pinned: true, title: Text(_p.species.name.pretty)),
-            SliverToBoxAdapter(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                    child: _buildHeader(context),
-                  ),
-                  _buildFormSelector(),
-                ],
-              ),
+            SliverAppBar(
+              pinned: true,
+              backgroundColor: colors[0],
+              shape: const RoundedRectangleBorder(),
+              title: Text(_p.species.name.pretty),
             ),
+            SliverToBoxAdapter(child: _buildHero(colors)),
             const SliverPersistentHeader(
               pinned: true,
-              delegate: _TabBarDelegate(
-                TabBar(
-                  isScrollable: true,
-                  tabs: [
-                    Tab(text: 'Sobre'),
-                    Tab(text: 'Status'),
-                    Tab(text: 'Pokédex'),
-                    Tab(text: 'Evolução'),
-                    Tab(text: 'Onde Achar'),
-                    Tab(text: 'Golpes'),
-                    Tab(text: 'Galeria'),
-                  ],
-                ),
-              ),
+              delegate: _TabBarDelegate([
+                'Sobre',
+                'Status',
+                'Pokédex',
+                'Evolução',
+                'Onde Achar',
+                'Golpes',
+                'Galeria',
+              ]),
             ),
           ],
           body: TabBarView(
@@ -151,10 +145,7 @@ class _PokemonScreenState extends State<PokemonScreen> {
       key: const PageStorageKey('tab-sobre'),
       padding: const EdgeInsets.all(16),
       children: [
-        _AsyncSection<PokemonSpecies>(
-          future: _species,
-          builder: _buildSpecies,
-        ),
+        _AsyncSection<PokemonSpecies>(future: _species, builder: _buildSpecies),
         const SizedBox(height: 16),
         _buildInfoRow(),
         _SectionTitle('Habilidades'),
@@ -293,11 +284,13 @@ class _PokemonScreenState extends State<PokemonScreen> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : null,
-                  label: Text(formLabel(
-                    v.pokemon.name,
-                    species.name,
-                    isDefault: v.isDefault,
-                  )),
+                  label: Text(
+                    formLabel(
+                      v.pokemon.name,
+                      species.name,
+                      isDefault: v.isDefault,
+                    ),
+                  ),
                   selected: v.pokemon.name == _p.name,
                   onSelected: _loadingForm == null
                       ? (_) => _selectForm(v.pokemon.name)
@@ -311,42 +304,97 @@ class _PokemonScreenState extends State<PokemonScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHero(List<Color> colors) {
     final image = _p.sprites.officialArtwork ?? _p.sprites.frontDefault;
-    return Column(
-      children: [
-        SizedBox(
-          height: 200,
-          child: image == null
-              ? const Icon(Icons.catching_pokemon, size: 96)
-              : Image.network(
-                  image,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) =>
-                      const Icon(Icons.catching_pokemon, size: 96),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: colors,
+        ),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(26)),
+      ),
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Stack(
+        children: [
+          Positioned(
+            right: 16,
+            top: 0,
+            child: Text(
+              '#${_p.id.toString().padLeft(3, '0')}',
+              style: const TextStyle(
+                fontSize: 64,
+                fontWeight: FontWeight.w700,
+                color: Color.fromRGBO(255, 255, 255, .18),
+              ),
+            ),
+          ),
+          Column(
+            children: [
+              SizedBox(
+                height: 190,
+                child: image == null
+                    ? const Icon(
+                        Icons.catching_pokemon,
+                        size: 96,
+                        color: Colors.white54,
+                      )
+                    : Image.network(
+                        image,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const Icon(
+                          Icons.catching_pokemon,
+                          size: 96,
+                          color: Colors.white54,
+                        ),
+                      ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                _p.name.pretty,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
                 ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          '#${_p.id.toString().padLeft(4, '0')}',
-          style: TextStyle(color: Colors.grey.shade600),
-        ),
-        Text(
-          _p.name.pretty,
-          style: Theme.of(context)
-              .textTheme
-              .headlineMedium
-              ?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          alignment: WrapAlignment.center,
-          children: _p.typeNames.map(_typeLink).toList(),
-        ),
-      ],
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 6,
+                alignment: WrapAlignment.center,
+                children: _p.typeNames.map(_heroTypeChip).toList(),
+              ),
+              _buildFormSelector(),
+            ],
+          ),
+        ],
+      ),
     );
   }
+
+  /// Tipo em pílula translúcida (o TypeBadge sumiria sobre o gradiente do tipo).
+  Widget _heroTypeChip(String type) => InkWell(
+    borderRadius: BorderRadius.circular(99),
+    onTap: () => Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => TypeScreen(typeName: type))),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: const Color.fromRGBO(0, 0, 0, .28),
+        borderRadius: BorderRadius.circular(99),
+      ),
+      child: Text(
+        typeLabel(type),
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
+      ),
+    ),
+  );
 
   Widget _buildInfoRow() {
     return Row(
@@ -381,9 +429,7 @@ class _PokemonScreenState extends State<PokemonScreen> {
           Text.rich(
             TextSpan(
               children: [
-                const TextSpan(
-                  text: 'Espécie: ',
-                ),
+                const TextSpan(text: 'Espécie: '),
                 TextSpan(
                   text: genus,
                   style: const TextStyle(fontStyle: FontStyle.italic),
@@ -391,7 +437,7 @@ class _PokemonScreenState extends State<PokemonScreen> {
               ],
             ),
           ),
-        
+
         Padding(
           padding: const EdgeInsets.only(top: 8),
           child: Text(
@@ -407,19 +453,23 @@ class _PokemonScreenState extends State<PokemonScreen> {
   List<Widget> _buildStats() {
     final total = _p.stats.fold<int>(0, (sum, s) => sum + s.baseStat);
     return [
-      ..._p.stats.map((s) => StatBar(
-            label: _statLabels[s.stat.name] ?? s.stat.name.pretty,
-            value: s.baseStat,
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => StatScreen(statName: s.stat.name),
-              ),
+      ..._p.stats.map(
+        (s) => StatBar(
+          label: _statLabels[s.stat.name] ?? s.stat.name.pretty,
+          value: s.baseStat,
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => StatScreen(statName: s.stat.name),
             ),
-          )),
+          ),
+        ),
+      ),
       Padding(
         padding: const EdgeInsets.only(top: 4),
-        child: Text('Total: $total',
-            style: const TextStyle(fontWeight: FontWeight.w600)),
+        child: Text(
+          'Total: $total',
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
       ),
     ];
   }
@@ -431,21 +481,23 @@ class _PokemonScreenState extends State<PokemonScreen> {
       spacing: 8,
       runSpacing: 4,
       children: abilities
-          .map((a) => ActionChip(
-                avatar: a.isHidden
-                    ? const Icon(Icons.visibility_off, size: 16)
-                    : null,
-                label: Text(
-                  a.isHidden
-                      ? '${a.ability.name.pretty} (oculta)'
-                      : a.ability.name.pretty,
+          .map(
+            (a) => ActionChip(
+              avatar: a.isHidden
+                  ? const Icon(Icons.visibility_off, size: 16)
+                  : null,
+              label: Text(
+                a.isHidden
+                    ? '${a.ability.name.pretty} (oculta)'
+                    : a.ability.name.pretty,
+              ),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => AbilityScreen(idOrName: a.ability.name),
                 ),
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => AbilityScreen(idOrName: a.ability.name),
-                  ),
-                ),
-              ))
+              ),
+            ),
+          )
           .toList(),
     );
   }
@@ -468,8 +520,10 @@ class _PokemonScreenState extends State<PokemonScreen> {
           if (entries.isNotEmpty) ...[
             Padding(
               padding: const EdgeInsets.only(top: 6, bottom: 4),
-              child: Text(title,
-                  style: const TextStyle(fontWeight: FontWeight.w600)),
+              child: Text(
+                title,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
             ),
             Wrap(
               spacing: 6,
@@ -485,12 +539,12 @@ class _PokemonScreenState extends State<PokemonScreen> {
 
   Widget _typeLink(String type, {String? suffix}) => InkWell(
     borderRadius: BorderRadius.circular(20),
-    onTap: () => Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => TypeScreen(typeName: type)),
-    ),
+    onTap: () => Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => TypeScreen(typeName: type))),
     child: suffix == null
-      ? TypeBadge(type: type)
-      : TypeBadge(type: type, suffix: suffix),
+        ? TypeBadge(type: type)
+        : TypeBadge(type: type, suffix: suffix),
   );
 
   String _multiplier(double v) {
@@ -513,10 +567,9 @@ class _SectionTitle extends StatelessWidget {
       padding: const EdgeInsets.only(top: 20, bottom: 8),
       child: Text(
         text,
-        style: Theme.of(context)
-            .textTheme
-            .titleMedium
-            ?.copyWith(fontWeight: FontWeight.bold),
+        style: Theme.of(
+          context,
+        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -533,7 +586,10 @@ class _InfoTile extends StatelessWidget {
     return Column(
       children: [
         Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
-        Text(label, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+        Text(
+          label,
+          style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+        ),
       ],
     );
   }
@@ -577,15 +633,15 @@ class _AsyncSection<T> extends StatelessWidget {
 
 /// Mantém a barra de abas fixa no topo enquanto o conteúdo rola.
 class _TabBarDelegate extends SliverPersistentHeaderDelegate {
-  final TabBar tabBar;
+  final List<String> labels;
 
-  const _TabBarDelegate(this.tabBar);
-
-  @override
-  double get minExtent => tabBar.preferredSize.height;
+  const _TabBarDelegate(this.labels);
 
   @override
-  double get maxExtent => tabBar.preferredSize.height;
+  double get minExtent => 62;
+
+  @override
+  double get maxExtent => 62;
 
   @override
   Widget build(
@@ -593,13 +649,36 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
-    return Material(
-      color: Theme.of(context).scaffoldBackgroundColor,
-      child: tabBar,
+    return Container(
+      color: AppColors.bg,
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: TabBar(
+          isScrollable: true,
+          tabAlignment: TabAlignment.start,
+          dividerColor: Colors.transparent,
+          indicatorSize: TabBarIndicatorSize.tab,
+          indicator: BoxDecoration(
+            color: AppColors.red,
+            borderRadius: BorderRadius.circular(9),
+          ),
+          labelColor: Colors.white,
+          unselectedLabelColor: AppColors.muted,
+          labelStyle: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 12,
+          ),
+          tabs: [for (final l in labels) Tab(text: l, height: 34)],
+        ),
+      ),
     );
   }
 
   @override
-  bool shouldRebuild(covariant _TabBarDelegate oldDelegate) =>
-      tabBar != oldDelegate.tabBar;
+  bool shouldRebuild(covariant _TabBarDelegate oldDelegate) => false;
 }

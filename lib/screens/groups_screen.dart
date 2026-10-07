@@ -1,139 +1,352 @@
 import 'package:flutter/material.dart';
+
+import '../theme/app_theme.dart';
+import 'berry_list_screen.dart';
+import 'contests_group_screen.dart';
+import 'currency_list_screen.dart';
+import 'encounters_group_screen.dart';
+import 'evolution_group_screen.dart';
+import 'generation_list_screen.dart';
+import 'global_search_screen.dart';
+import 'item_list_screen.dart';
+import 'locations_group_screen.dart';
+import 'machine_list_screen.dart';
 import 'move_list_screen.dart';
 import 'pokemon_group_screen.dart';
-import 'locations_group_screen.dart';
-import 'item_list_screen.dart';
-import 'machine_list_screen.dart';
-import 'berry_list_screen.dart';
-import 'generation_list_screen.dart';
-import 'encounters_group_screen.dart';
-import 'currency_list_screen.dart';
-import 'contests_group_screen.dart';
-import 'evolution_group_screen.dart';
 
 class _ApiGroup {
   final String title;
+  final String? subtitle;
   final IconData icon;
+  final Color tint; // cor de fundo da caixa do ícone
+  final WidgetBuilder builder;
 
-  /// Tela que o grupo abre. Se for null, o grupo fica desabilitado ("em breve").
-  final WidgetBuilder? builder;
-
-  const _ApiGroup(this.title, this.icon, {this.builder});
-
-  bool get enabled => builder != null;
+  const _ApiGroup(
+    this.title,
+    this.icon,
+    this.tint,
+    this.builder, {
+    this.subtitle,
+  });
 }
 
 // Não é const porque os builders são funções.
+final _featured = _ApiGroup(
+  'Pokémon',
+  Icons.catching_pokemon,
+  Colors.white24,
+  (_) => const PokemonGroupScreen(),
+  subtitle: 'Explore todas as espécies',
+);
+
 final _groups = <_ApiGroup>[
   _ApiGroup(
     'Berries',
     Icons.eco,
-    builder: (_) => const BerryListScreen(),
+    const Color(0xFF3A2230),
+    (_) => const BerryListScreen(),
   ),
   _ApiGroup(
-    'Contests',
+    'Concursos',
     Icons.emoji_events,
-    builder: (_) => const ContestsGroupScreen(),
+    const Color(0xFF3A3322),
+    (_) => const ContestsGroupScreen(),
   ),
   _ApiGroup(
-    'Currencies',
+    'Moedas',
     Icons.attach_money,
-    builder: (_) => const CurrencyListScreen(),
+    const Color(0xFF3A3A22),
+    (_) => const CurrencyListScreen(),
   ),
   _ApiGroup(
-    'Encounters',
+    'Encontros',
     Icons.explore,
-    builder: (_) => const EncountersGroupScreen(),
+    const Color(0xFF22343A),
+    (_) => const EncountersGroupScreen(),
   ),
   _ApiGroup(
-    'Evolution',
+    'Evolução',
     Icons.trending_up,
-    builder: (_) => const EvolutionGroupScreen(),
+    const Color(0xFF2B2A3D),
+    (_) => const EvolutionGroupScreen(),
   ),
   _ApiGroup(
-    'Games',
+    'Jogos',
     Icons.sports_esports,
-    builder: (_) => const GenerationListScreen(),
+    const Color(0xFF2D3A22),
+    (_) => const GenerationListScreen(),
   ),
   _ApiGroup(
-    'Items',
+    'Itens',
     Icons.backpack,
-    builder: (_) => const ItemListScreen(),
+    const Color(0xFF3A2A22),
+    (_) => const ItemListScreen(),
   ),
   _ApiGroup(
-    'Locations',
+    'Locais',
     Icons.map,
-    builder: (_) => const LocationsGroupScreen(),
+    const Color(0xFF22393A),
+    (_) => const LocationsGroupScreen(),
   ),
   _ApiGroup(
-    'Machines',
+    'Máquinas',
     Icons.album,
-    builder: (_) => const MachineListScreen(),
+    const Color(0xFF2A2F3A),
+    (_) => const MachineListScreen(),
   ),
   _ApiGroup(
-    'Moves',
+    'Golpes',
     Icons.flash_on,
-    builder: (_) => const MoveListScreen(),
-  ),
-  _ApiGroup(
-    'Pokémon',
-    Icons.catching_pokemon,
-    builder: (_) => const PokemonGroupScreen(),
+    const Color(0xFF3A2236),
+    (_) => const MoveListScreen(),
   ),
 ];
 
 class GroupsScreen extends StatelessWidget {
   const GroupsScreen({super.key});
 
+  void _open(BuildContext context, WidgetBuilder builder) =>
+      Navigator.push(context, MaterialPageRoute(builder: builder));
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Pokédex')),
-      body: GridView.builder(
-        padding: const EdgeInsets.all(16),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 1.3,
-        ),
-        itemCount: _groups.length,
-        itemBuilder: (context, i) {
-          final g = _groups[i];
-          return Opacity(
-            opacity: g.enabled ? 1 : 0.45,
-            child: Card(
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                onTap: () {
-                  if (!g.enabled) {
-                    ScaffoldMessenger.of(context)
-                      ..hideCurrentSnackBar()
-                      ..showSnackBar(
-                        SnackBar(content: Text('${g.title}: em breve')),
-                      );
-                    return;
-                  }
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: g.builder!),
-                  );
-                },
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(g.icon, size: 36),
-                    const SizedBox(height: 8),
-                    Text(
-                      g.title,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ],
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: _Header(
+              onSearch: () => _open(context, (_) => const GlobalSearchScreen()),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            sliver: SliverToBoxAdapter(
+              child: _FeaturedTile(
+                group: _featured,
+                onTap: () => _open(context, _featured.builder),
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            sliver: SliverGrid.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                childAspectRatio: 1.35,
+              ),
+              itemCount: _groups.length,
+              itemBuilder: (context, i) => _GroupTile(
+                group: _groups[i],
+                onTap: () => _open(context, _groups[i].builder),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Cabeçalho vermelho com o título e a busca global.
+class _Header extends StatelessWidget {
+  final VoidCallback onSearch;
+  const _Header({required this.onSearch});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.red,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(26)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          Positioned(
+            right: -30,
+            top: -30,
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: const Color.fromRGBO(255, 255, 255, .12),
+                  width: 14,
                 ),
               ),
             ),
-          );
-        },
+          ),
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(18, 18, 18, 22),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Pokédex',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: onSearch,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color.fromRGBO(0, 0, 0, .25),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(
+                            Icons.search,
+                            size: 18,
+                            color: Color(0xFFFFD9D9),
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Buscar pokémon, itens, golpes…',
+                            style: TextStyle(
+                              color: Color(0xFFFFD9D9),
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FeaturedTile extends StatelessWidget {
+  final _ApiGroup group;
+  final VoidCallback onTap;
+  const _FeaturedTile({required this.group, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      borderRadius: BorderRadius.circular(16),
+      clipBehavior: Clip.antiAlias,
+      child: Ink(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [AppColors.red, AppColors.redDark],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: const Color.fromRGBO(255, 255, 255, .2),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(group.icon, color: Colors.white),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        group.title,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                      if (group.subtitle != null)
+                        Text(
+                          group.subtitle!,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFFFFE3E3),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.chevron_right, color: Colors.white),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GroupTile extends StatelessWidget {
+  final _ApiGroup group;
+  final VoidCallback onTap;
+  const _GroupTile({required this.group, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.line),
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: group.tint,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(group.icon, size: 20, color: Colors.white70),
+                ),
+                Text(
+                  group.title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

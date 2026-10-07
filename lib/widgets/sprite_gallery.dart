@@ -21,14 +21,14 @@ class SpriteGallery extends StatelessWidget {
       return const Text('Nenhuma imagem disponível para esta forma.');
     }
 
-    final titleStyle = Theme.of(context)
-        .textTheme
-        .titleMedium
-        ?.copyWith(fontWeight: FontWeight.bold);
+    final titleStyle = Theme.of(
+      context,
+    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold);
 
     final children = <Widget>[];
     byGroup.forEach((group, images) {
-      final smooth = group == PokemonSprites.groupArtwork ||
+      final smooth =
+          group == PokemonSprites.groupArtwork ||
           group == PokemonSprites.groupHome;
 
       if (group == PokemonSprites.groupByGame) {
@@ -47,10 +47,12 @@ class SpriteGallery extends StatelessWidget {
           ),
         );
       } else {
-        children.add(Padding(
-          padding: const EdgeInsets.only(top: 12, bottom: 8),
-          child: Text(group, style: titleStyle),
-        ));
+        children.add(
+          Padding(
+            padding: const EdgeInsets.only(top: 12, bottom: 8),
+            child: Text(group, style: titleStyle),
+          ),
+        );
         children.add(_Grid(images: images, smooth: smooth));
       }
     });
@@ -86,11 +88,13 @@ class _Grid extends StatelessWidget {
           spacing: _spacing,
           runSpacing: _spacing,
           children: images
-              .map((image) => SizedBox(
-                    width: width,
-                    height: width / 0.8,
-                    child: _SpriteTile(image: image, smooth: smooth),
-                  ))
+              .map(
+                (image) => SizedBox(
+                  width: width,
+                  height: width / 0.8,
+                  child: _SpriteTile(image: image, smooth: smooth),
+                ),
+              )
               .toList(),
         );
       },
@@ -104,7 +108,8 @@ class _SpriteTile extends StatelessWidget {
 
   const _SpriteTile({required this.image, required this.smooth});
 
-  FilterQuality get _quality => smooth ? FilterQuality.medium : FilterQuality.none;
+  FilterQuality get _quality =>
+      smooth ? FilterQuality.medium : FilterQuality.none;
 
   @override
   Widget build(BuildContext context) {
@@ -166,8 +171,10 @@ class _SpriteTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              Text(image.label,
-                  style: const TextStyle(fontWeight: FontWeight.w600)),
+              Text(
+                image.label,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
               TextButton(
                 onPressed: () => Navigator.of(dialogContext).pop(),
                 child: const Text('Fechar'),

@@ -19,7 +19,6 @@ class MoveScreen extends StatefulWidget {
 }
 
 class _MoveScreenState extends State<MoveScreen> {
-
   final PokemonRepository _repository = PokemonRepository.shared;
   late Future<Move> _future;
 
@@ -29,7 +28,8 @@ class _MoveScreenState extends State<MoveScreen> {
     _future = _repository.getMove(widget.moveName);
   }
 
-  void _retry() => setState(() => _future = _repository.getMove(widget.moveName));
+  void _retry() =>
+      setState(() => _future = _repository.getMove(widget.moveName));
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +66,6 @@ class _MoveScreenState extends State<MoveScreen> {
   }
 
   Widget _buildContent(Move move) {
-
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -109,11 +108,13 @@ class _MoveScreenState extends State<MoveScreen> {
             spacing: 8,
             runSpacing: 4,
             children: move.statChanges
-                .map((c) => Chip(
-                      label: Text(
-                        '${c.stat.name.pretty} ${c.change > 0 ? '+' : ''}${c.change}',
-                      ),
-                    ))
+                .map(
+                  (c) => Chip(
+                    label: Text(
+                      '${c.stat.name.pretty} ${c.change > 0 ? '+' : ''}${c.change}',
+                    ),
+                  ),
+                )
                 .toList(),
           ),
         ],
@@ -134,8 +135,10 @@ class _MoveScreenState extends State<MoveScreen> {
   String _effectText(Move move) {
     for (final entry in move.effectEntries) {
       if (entry.language.name == 'en') {
-        return entry.shortEffect
-            .replaceAll(r'$effect_chance', '${move.effectChance ?? ''}');
+        return entry.shortEffect.replaceAll(
+          r'$effect_chance',
+          '${move.effectChance ?? ''}',
+        );
       }
     }
     return 'Sem descrição disponível.';
@@ -153,10 +156,9 @@ class _Title extends StatelessWidget {
       padding: const EdgeInsets.only(top: 20, bottom: 8),
       child: Text(
         text,
-        style: Theme.of(context)
-            .textTheme
-            .titleMedium
-            ?.copyWith(fontWeight: FontWeight.bold),
+        style: Theme.of(
+          context,
+        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -172,10 +174,14 @@ class _Stat extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(value,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-        Text(label,
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+        Text(
+          value,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        Text(
+          label,
+          style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+        ),
       ],
     );
   }

@@ -44,13 +44,15 @@ class EvolutionTree extends StatelessWidget {
             spacing: 16,
             runSpacing: 16,
             children: link.evolvesTo
-                .map((next) => _subtree(
-                      context,
-                      next,
-                      next.evolutionDetails.isEmpty
-                          ? null
-                          : next.evolutionDetails.first,
-                    ))
+                .map(
+                  (next) => _subtree(
+                    context,
+                    next,
+                    next.evolutionDetails.isEmpty
+                        ? null
+                        : next.evolutionDetails.first,
+                  ),
+                )
                 .toList(),
           ),
         ],
@@ -65,9 +67,11 @@ String describeEvolution(EvolutionDetail d) {
   if (d.minLevel != null) parts.add('Nível ${d.minLevel}');
   if (d.item != null) parts.add('Usar ${d.item!.name.pretty}');
   if (d.trigger.name == 'trade') {
-    parts.add(d.tradeSpecies != null
-        ? 'Troca por ${d.tradeSpecies!.name.pretty}'
-        : 'Troca');
+    parts.add(
+      d.tradeSpecies != null
+          ? 'Troca por ${d.tradeSpecies!.name.pretty}'
+          : 'Troca',
+    );
   }
   if (d.heldItem != null) parts.add('Segurando ${d.heldItem!.name.pretty}');
   if (d.knownMove != null) parts.add('Sabendo ${d.knownMove!.name.pretty}');
@@ -156,7 +160,8 @@ class _EvolutionNode extends StatelessWidget {
               backgroundImage: id == null
                   ? null
                   : NetworkImage(
-                      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$id.png'),
+                      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$id.png',
+                    ),
               child: id == null ? const Icon(Icons.catching_pokemon) : null,
             ),
             const SizedBox(height: 4),
