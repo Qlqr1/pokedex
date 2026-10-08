@@ -20,4 +20,9 @@ class AbilityRepository {
     _details[a.name] = a;
     return a;
   }
+
+  /// Limpa os textos em cache (usado ao trocar de idioma).
+  void clear() {
+    _details.clear();
+  }
 }

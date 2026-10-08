@@ -1,3 +1,4 @@
+import '../utils/lang.dart';
 import 'named_ref.dart';
 
 class EvolutionTriggerInfo {
@@ -14,10 +15,7 @@ class EvolutionTriggerInfo {
   });
 
   factory EvolutionTriggerInfo.fromJson(Map<String, dynamic> j) {
-    String? en;
-    for (final n in j['names'] as List) {
-      if (n['language']?['name'] == 'en') en = n['name'];
-    }
+    final en = Lang.pick(j['names'] as List, 'name');
     return EvolutionTriggerInfo(
       id: j['id'],
       name: j['name'],

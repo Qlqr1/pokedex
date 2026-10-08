@@ -28,4 +28,9 @@ class DexRepository {
   Future<SpeciesDex> getSpeciesDex(String speciesName) =>
       _cached('species-dex/$speciesName',
           () => _service.fetchSpeciesDex(speciesName));
+
+  /// Limpa os textos em cache (usado ao trocar de idioma).
+  void clear() {
+    _cache.clear();
+  }
 }

@@ -31,4 +31,9 @@ class EncounterRepository {
       _cached('condition/$n', () => _service.fetchCondition(n));
   Future<ConditionValueInfo> getConditionValue(String n) =>
       _cached('value/$n', () => _service.fetchConditionValue(n));
+
+  /// Limpa os textos em cache (usado ao trocar de idioma).
+  void clear() {
+    _cache.clear();
+  }
 }

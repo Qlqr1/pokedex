@@ -1,3 +1,4 @@
+import '../utils/lang.dart';
 import 'named_ref.dart';
 
 class Item {
@@ -31,14 +32,7 @@ class Item {
     required this.heldBy,
   });
 
-  static String? _en(List list, String key) {
-    for (final e in list) {
-      if (e['language']?['name'] == 'en') {
-        return (e[key] as String).replaceAll(RegExp(r'[\n\f]+'), ' ');
-      }
-    }
-    return null;
-  }
+  static String? _en(List list, String key) => Lang.pick(list, key);
 
   factory Item.fromJson(Map<String, dynamic> j) => Item(
         id: j['id'],

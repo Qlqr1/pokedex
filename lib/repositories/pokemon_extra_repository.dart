@@ -57,4 +57,9 @@ class PokemonExtraRepository {
         return Future.wait(ids.map((id) => _cached(
             'characteristic/$id', () => _s.fetchCharacteristic(id))));
       });
+
+  /// Limpa os textos em cache (usado ao trocar de idioma).
+  void clear() {
+    _cache.clear();
+  }
 }

@@ -1,3 +1,4 @@
+import '../utils/lang.dart';
 import 'named_ref.dart';
 export 'named_ref.dart';
 
@@ -41,14 +42,7 @@ class Ability {
     this.pokemon = const [],
   });
 
-  static String? _en(List list, String key) {
-    for (final e in list) {
-      if (e['language']?['name'] == 'en') {
-        return (e[key] as String).replaceAll(RegExp(r'[\n\f]+'), ' ');
-      }
-    }
-    return null;
-  }
+  static String? _en(List list, String key) => Lang.pick(list, key);
 
   factory Ability.fromJson(Map<String, dynamic> j) => Ability(
         id: j['id'] as int,

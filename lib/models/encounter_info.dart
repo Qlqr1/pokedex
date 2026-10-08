@@ -1,11 +1,7 @@
+import '../utils/lang.dart';
 import 'named_ref.dart';
 
-String? _en(List list, String key) {
-  for (final e in list) {
-    if (e['language']?['name'] == 'en') return e[key] as String;
-  }
-  return null;
-}
+String? _en(List list, String key) => Lang.pick(list, key);
 
 class EncounterMethodInfo {
   final int id;

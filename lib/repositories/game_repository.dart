@@ -27,4 +27,9 @@ class GameRepository {
       _cached('gen-games/$gen', () => _service.fetchGenerationGames(gen));
   Future<GameDetail> getGame(String name) =>
       _cached('game/$name', () => _service.fetchGame(name));
+
+  /// Limpa os textos em cache (usado ao trocar de idioma).
+  void clear() {
+    _cache.clear();
+  }
 }

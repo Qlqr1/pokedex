@@ -1,11 +1,5 @@
-String? _en(List list, String key) {
-  for (final e in list) {
-    if (e['language']?['name'] == 'en') {
-      return (e[key] as String).replaceAll(RegExp(r'[\n\f]+'), ' ');
-    }
-  }
-  return null;
-}
+import '../utils/lang.dart';
+String? _en(List list, String key) => Lang.pick(list, key);
 
 /// Tipo de concurso (Cool, Beauty, Cute, Smart, Tough).
 class ContestTypeInfo {

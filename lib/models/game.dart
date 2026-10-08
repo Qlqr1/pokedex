@@ -1,3 +1,4 @@
+import '../utils/lang.dart';
 /// Um jogo (versão) com os dados do seu grupo de versões.
 class GameDetail {
   final int id;
@@ -27,10 +28,7 @@ class GameDetail {
 
   factory GameDetail.fromJson(
       Map<String, dynamic> version, Map<String, dynamic> group) {
-    String? en;
-    for (final n in version['names'] as List) {
-      if (n['language']?['name'] == 'en') en = n['name'];
-    }
+    final en = Lang.pick(version['names'] as List, 'name');
     return GameDetail(
       id: version['id'],
       name: version['name'],

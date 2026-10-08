@@ -31,4 +31,9 @@ class ContestRepository {
       _cached('effects', _service.fetchContestEffects);
   Future<List<ContestEffectInfo>> getSuperContestEffects() =>
       _cached('super-effects', _service.fetchSuperContestEffects);
+
+  /// Limpa os textos em cache (usado ao trocar de idioma).
+  void clear() {
+    _cache.clear();
+  }
 }

@@ -25,4 +25,9 @@ class EvolutionRepository {
       _cached('triggers', _service.fetchTriggers);
   Future<EvolutionTriggerInfo> getTrigger(String n) =>
       _cached('trigger/$n', () => _service.fetchTrigger(n));
+
+  /// Limpa os textos em cache (usado ao trocar de idioma).
+  void clear() {
+    _cache.clear();
+  }
 }

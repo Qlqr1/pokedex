@@ -1,13 +1,7 @@
+import '../utils/lang.dart';
 import 'named_ref.dart';
 
-String? _en(List list, String key) {
-  for (final e in list) {
-    if (e['language']?['name'] == 'en') {
-      return (e[key] as String).replaceAll(RegExp(r'[\n\f]+'), ' ');
-    }
-  }
-  return null;
-}
+String? _en(List list, String key) => Lang.pick(list, key);
 
 List<String> _names(dynamic l) =>
     ((l ?? []) as List).map((e) => e['name'] as String).toList();

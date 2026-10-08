@@ -1,3 +1,4 @@
+import '../utils/lang.dart';
 import 'named_ref.dart';
 
 class PokedexEntry {
@@ -31,12 +32,7 @@ class PokedexDetail {
     required this.entries,
   });
 
-  static String? _en(List list, String key) {
-    for (final e in list) {
-      if (e['language']?['name'] == 'en') return e[key] as String;
-    }
-    return null;
-  }
+  static String? _en(List list, String key) => Lang.pick(list, key);
 
   factory PokedexDetail.fromJson(Map<String, dynamic> j) => PokedexDetail(
         id: j['id'],
@@ -83,6 +79,7 @@ class SpeciesDex {
   final int genderRate; // -1 = sem gênero; 0..8 = oitavos de chance de fêmea
   final String? growthRate;
   final String? habitat;
+  final String? speciesName; // nome da espécie no idioma escolhido
 
   const SpeciesDex({
     required this.numbers,
@@ -91,6 +88,7 @@ class SpeciesDex {
     required this.genderRate,
     required this.growthRate,
     required this.habitat,
+    required this.speciesName,
   });
 
   factory SpeciesDex.fromJson(Map<String, dynamic> j) {
@@ -103,8 +101,13 @@ class SpeciesDex {
 
     // Agrupa textos idênticos (muitos jogos repetem o mesmo texto).
     final byText = <String, List<String>>{};
-    for (final e in j['flavor_text_entries'] as List) {
-      if (e['language']?['name'] != 'en') continue;
+    final entries = j['flavor_text_entries'] as List;
+    final textLang =
+        Lang.has(entries, Lang.code) ? Lang.code : Lang.fallback;
+    for (final e in entries) {
+      if ((e['language']?['name'] as String?)?.toLowerCase() != textLang) {
+        continue;
+      }
       final text = (e['flavor_text'] as String)
           .replaceAll(RegExp(r'[\n\f\u00ad]+'), ' ')
           .replaceAll(RegExp(r'\s+'), ' ')
@@ -125,6 +128,7 @@ class SpeciesDex {
       genderRate: j['gender_rate'] ?? -1,
       growthRate: j['growth_rate']?['name'],
       habitat: j['habitat']?['name'],
+      speciesName: Lang.pick((j['names'] ?? []) as List, 'name'),
     );
   }
 }

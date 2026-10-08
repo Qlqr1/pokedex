@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/dex.dart';
 import '../screens/egg_group_screen.dart';
 import '../screens/habitat_screen.dart';
+import '../utils/lang.dart';
 import '../utils/species_utils.dart';
 import 'info_row.dart';
 
@@ -20,6 +21,8 @@ class SpeciesExtrasView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (dex.speciesName != null && Lang.code != 'en')
+          InfoRow('Nome (${Lang.code.toUpperCase()})', dex.speciesName!),
         _Block(
           label: 'Grupos de ovo',
           child: dex.eggGroups.isEmpty

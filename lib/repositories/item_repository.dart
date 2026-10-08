@@ -26,4 +26,9 @@ class ItemRepository {
     });
     return f;
   }
+
+  /// Limpa os textos em cache (usado ao trocar de idioma).
+  void clear() {
+    _items.clear();
+  }
 }
