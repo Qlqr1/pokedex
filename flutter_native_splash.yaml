@@ -1,0 +1,14 @@
+# Tela de abertura nativa (Android e web).
+# Gerar com:  dart run flutter_native_splash:create
+flutter_native_splash:
+  color: "#15171C"
+  image: assets/splash/pokeball_splash.png
+
+  android: true
+  ios: false
+  web: true
+
+  # Android 12 ou superior usa a API própria de splash.
+  android_12:
+    color: "#15171C"
+    image: assets/splash/pokeball_splash.png

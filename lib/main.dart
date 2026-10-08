@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'screens/groups_screen.dart';
+import 'screens/splash_screen.dart';
 import 'theme/app_theme.dart';
 
 void main() {
@@ -27,6 +27,6 @@ class PokedexApp extends StatelessWidget {
     title: 'Pokédex',
     debugShowCheckedModeBanner: false,
     theme: buildAppTheme(),
-    home: const GroupsScreen(),
+    home: const SplashScreen(),
   );
 }
