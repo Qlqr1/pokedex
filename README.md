@@ -2,11 +2,7 @@
 
 Aplicativo em **Flutter** que reúne os dados da [PokéAPI](https://pokeapi.co) em uma Pokédex navegável: Pokémon, golpes, habilidades, itens, locais, jogos e mais. Roda na **web** e no **Android**.
 
-> Projeto acadêmico, sem fins lucrativos. Pokémon e seus nomes são marcas de Nintendo, Game Freak e Creatures Inc.
-
-<!-- Adicione aqui capturas de tela, por exemplo:
-![Tela inicial](docs/home.png)
--->
+> Projeto acadêmico, sem fins lucrativos, desenvolvido com o auxílio de inteligência artificial (veja [Autoria](#autoria)). Pokémon e seus nomes são marcas de Nintendo, Game Freak e Creatures Inc.
 
 ## Funcionalidades
 
@@ -125,7 +121,26 @@ Cada grupo da API segue o mesmo caminho: **service** (busca o JSON) → **model*
 - **Chances de encontro**: a API lista uma entrada por nível e condição. O app combina as entradas para não passar de 100% e omite o percentual onde a API não tem taxa real (como em Let's Go).
 - **Limite de requisições**: a PokéAPI limita o número de pedidos. Se aparecer um erro de excesso de requisições, aguarde um instante e tente de novo.
 
+## Autoria
+
+**Gustavo Klidzio Gonçalves**, aluno do terceiro ano do ensino médio do curso Técnico em Informática para a Internet da escola IFC - Campus Concórdia.
+
+### Desenvolvimento com inteligência artificial
+
+Este projeto foi desenvolvido com o auxílio do **Claude**, assistente de inteligência artificial da [Anthropic](https://www.anthropic.com), usado por meio do [claude.ai](https://claude.ai). A versão usada na elaboração deste README foi o **Claude Sonnet 5.5**.
+
+A IA participou de forma relevante e foi muito útil na realização do trabalho. Entre outras coisas, ajudou a:
+
+- propor e organizar a arquitetura do código (services, repositories, models e telas);
+- escrever e revisar o código Flutter das telas, dos componentes e da integração com a PokéAPI;
+- criar o tema visual a partir do protótipo de redesign, a splash screen, os ícones e o sistema de idiomas;
+- diagnosticar erros de compilação e de build (incluindo o do Android no Windows);
+- redigir este README.
+
+O autor definiu os requisitos e o escopo de cada etapa, conduziu o desenvolvimento, testou o aplicativo, ajustou o resultado e é responsável pelo projeto. Os códigos gerados com a ajuda da IA foram executados e corrigidos a partir dos testes feitos pelo autor.
+
 ## Créditos
 
 - [PokéAPI](https://pokeapi.co) e seus colaboradores, pelos dados e sprites.
+- [Claude](https://www.anthropic.com/claude), da Anthropic, pelo auxílio no desenvolvimento (veja [Autoria](#autoria)).
 - Pokémon © Nintendo, Game Freak e Creatures Inc.
