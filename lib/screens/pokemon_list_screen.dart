@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../bloc/lista_pokemon/lista_pokemon_bloc.dart';
+import '../bloc/lista_pokemon/lista_pokemon_event.dart';
+import '../bloc/lista_pokemon/lista_pokemon_state.dart';
 import '../models/models.dart';
 import '../repositories/pokemon_repository.dart';
-import '../services/pokeapi_service.dart'; // PokeApiException
 import '../utils/search_utils.dart';
 import '../theme/app_theme.dart';
 import '../utils/string_utils.dart';
@@ -14,28 +17,35 @@ import 'pokemon_screen.dart';
 /// Lista básica de Pokémon, na ordem padrão da Pokédex, com scroll infinito e
 /// busca por nome ou número. Cada item mostra sprite, número, nome, peso,
 /// altura e tipagem.
-class PokemonListScreen extends StatefulWidget {
+///
+/// O carregamento paginado é controlado pelo [ListaPokemonBloc]; a busca
+/// continua local à tela.
+class PokemonListScreen extends StatelessWidget {
   const PokemonListScreen({super.key});
 
   @override
-  State<PokemonListScreen> createState() => _PokemonListScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => ListaPokemonBloc()..add(const ListaPokemonIniciada()),
+      child: const _PokemonListView(),
+    );
+  }
 }
 
-class _PokemonListScreenState extends State<PokemonListScreen> {
-  static const int _pageSize = 20;
+class _PokemonListView extends StatefulWidget {
+  const _PokemonListView();
 
+  @override
+  State<_PokemonListView> createState() => _PokemonListViewState();
+}
+
+class _PokemonListViewState extends State<_PokemonListView> {
   /// Na PokéAPI, ids acima disso são formas alternativas (Mega, regionais...),
   /// que já aparecem no seletor de formas da página do Pokémon.
   static const int _maxSpeciesId = 10000;
 
   final PokemonRepository _repository = PokemonRepository.shared;
   final ScrollController _scroll = ScrollController();
-  final List<Pokemon> _pokemons = [];
-
-  int _offset = 0;
-  bool _loading = false;
-  bool _hasMore = true;
-  String? _error;
 
   // Busca: baixa a lista completa de nomes (só uma vez, na primeira busca) e
   // filtra localmente. Os detalhes de cada resultado são carregados sob demanda.
@@ -48,7 +58,6 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
   void initState() {
     super.initState();
     _scroll.addListener(_onScroll);
-    _loadMore();
   }
 
   @override
@@ -60,7 +69,7 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
   void _onScroll() {
     if (_searching) return;
     if (_scroll.position.pixels >= _scroll.position.maxScrollExtent - 300) {
-      _loadMore();
+      context.read<ListaPokemonBloc>().add(const ListaPokemonMaisSolicitado());
     }
   }
 
@@ -81,46 +90,12 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
     });
   }
 
-  Future<void> _loadMore() async {
-    if (_loading || !_hasMore) return;
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-
-    try {
-      final page = await _repository.getPokemonPage(
-        limit: _pageSize,
-        offset: _offset,
-      );
-      if (!mounted) return;
-      setState(() {
-        _pokemons.addAll(page);
-        _offset += _pageSize;
-        _hasMore = page.length == _pageSize;
-        _loading = false;
-      });
-    } on PokeApiException catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = e.isRateLimited
-            ? 'Muitas requisições. Aguarde um instante e tente de novo.'
-            : e.message;
-        _loading = false;
-      });
-    }
-  }
-
   Future<void> _refresh() async {
-    _repository.clearCache(); // puxar para atualizar busca de novo na API
-    setState(() {
-      _pokemons.clear();
-      _offset = 0;
-      _hasMore = true;
-      _error = null;
-      _allNames = null;
-    });
-    await _loadMore();
+    final bloc = context.read<ListaPokemonBloc>();
+    setState(() => _allNames = null);
+    bloc.add(const ListaPokemonAtualizada());
+    // Mantém o indicador do RefreshIndicator até o bloc emitir o resultado.
+    await bloc.stream.firstWhere((s) => s is! ListaPokemonCarregando);
   }
 
   @override
@@ -170,11 +145,26 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
   }
 
   Widget _buildBody() {
-    if (_pokemons.isEmpty) {
-      if (_error != null)
-        return _ErrorView(message: _error!, onRetry: _loadMore);
-      return const Center(child: CircularProgressIndicator());
-    }
+    return BlocBuilder<ListaPokemonBloc, ListaPokemonState>(
+      builder: (context, state) {
+        return switch (state) {
+          ListaPokemonInicial() || ListaPokemonCarregando() => const Center(
+            child: CircularProgressIndicator(),
+          ),
+          ListaPokemonErro(:final mensagem) => _ErrorView(
+            message: mensagem,
+            onRetry: () => context.read<ListaPokemonBloc>().add(
+              const ListaPokemonIniciada(),
+            ),
+          ),
+          ListaPokemonSucesso() => _buildLista(state),
+        };
+      },
+    );
+  }
+
+  Widget _buildLista(ListaPokemonSucesso state) {
+    final temItemExtra = state.temMais || state.erroAoCarregarMais != null;
 
     return RefreshIndicator(
       onRefresh: _refresh,
@@ -182,16 +172,18 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
         controller: _scroll,
         padding: const EdgeInsets.only(top: 8, bottom: 16),
         physics: const AlwaysScrollableScrollPhysics(),
-        itemCount: _pokemons.length + ((_hasMore || _error != null) ? 1 : 0),
+        itemCount: state.pokemons.length + (temItemExtra ? 1 : 0),
         itemBuilder: (context, index) {
-          if (index < _pokemons.length) {
-            return _PokemonTile(pokemon: _pokemons[index]);
+          if (index < state.pokemons.length) {
+            return _PokemonTile(pokemon: state.pokemons[index]);
           }
           // Último item: erro com "tentar de novo" ou indicador de carregamento.
-          if (_error != null) {
+          if (state.erroAoCarregarMais != null) {
             return _ErrorView(
-              message: _error!,
-              onRetry: _loadMore,
+              message: state.erroAoCarregarMais!,
+              onRetry: () => context.read<ListaPokemonBloc>().add(
+                const ListaPokemonMaisSolicitado(),
+              ),
               compact: true,
             );
           }

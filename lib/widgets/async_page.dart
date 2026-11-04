@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../bloc/carregamento/carregamento_bloc.dart';
+import '../bloc/carregamento/carregamento_event.dart';
+import '../bloc/carregamento/carregamento_state.dart';
 
 /// Página de detalhe padrão: AppBar + carregamento + erro com "Tentar de novo".
-class AsyncPage<T> extends StatefulWidget {
+///
+/// O carregamento é controlado por um [CarregamentoBloc]; esta classe só
+/// cria o BLoC e desenha cada estado.
+class AsyncPage<T> extends StatelessWidget {
   final String title;
   final Future<T> Function() loader;
   final Widget Function(BuildContext context, T data) builder;
@@ -16,42 +24,37 @@ class AsyncPage<T> extends StatefulWidget {
   });
 
   @override
-  State<AsyncPage<T>> createState() => _AsyncPageState<T>();
-}
-
-class _AsyncPageState<T> extends State<AsyncPage<T>> {
-  late Future<T> _future;
-
-  @override
-  void initState() {
-    super.initState();
-    _future = widget.loader();
-  }
-
-  void _retry() => setState(() => _future = widget.loader());
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
-      body: FutureBuilder<T>(
-        future: _future,
-        builder: (context, snap) {
-          if (snap.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snap.hasError) {
-            return Center(
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text(widget.errorText),
-                const SizedBox(height: 8),
-                ElevatedButton(
-                    onPressed: _retry, child: const Text('Tentar novamente')),
-              ]),
-            );
-          }
-          return widget.builder(context, snap.data as T);
-        },
+    return BlocProvider(
+      create: (_) =>
+          CarregamentoBloc<T>(loader: loader)
+            ..add(const CarregamentoIniciado()),
+      child: Scaffold(
+        appBar: AppBar(title: Text(title)),
+        body: BlocBuilder<CarregamentoBloc<T>, CarregamentoState<T>>(
+          builder: (context, state) {
+            return switch (state) {
+              CarregamentoInicial<T>() || CarregamentoCarregando<T>() =>
+                const Center(child: CircularProgressIndicator()),
+              CarregamentoErro<T>() => Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(errorText),
+                    const SizedBox(height: 8),
+                    ElevatedButton(
+                      onPressed: () => context.read<CarregamentoBloc<T>>().add(
+                        const CarregamentoNovaTentativa(),
+                      ),
+                      child: const Text('Tentar novamente'),
+                    ),
+                  ],
+                ),
+              ),
+              CarregamentoSucesso<T>(:final dados) => builder(context, dados),
+            };
+          },
+        ),
       ),
     );
   }
