@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../bloc/busca_pokemon/busca_pokemon_bloc.dart';
+import '../bloc/busca_pokemon/busca_pokemon_event.dart';
+import '../bloc/busca_pokemon/busca_pokemon_state.dart';
 import '../bloc/lista_pokemon/lista_pokemon_bloc.dart';
 import '../bloc/lista_pokemon/lista_pokemon_event.dart';
 import '../bloc/lista_pokemon/lista_pokemon_state.dart';
 import '../models/models.dart';
 import '../repositories/pokemon_repository.dart';
-import '../utils/search_utils.dart';
 import '../theme/app_theme.dart';
 import '../utils/string_utils.dart';
 import '../utils/type_colors.dart';
@@ -18,15 +20,20 @@ import 'pokemon_screen.dart';
 /// busca por nome ou número. Cada item mostra sprite, número, nome, peso,
 /// altura e tipagem.
 ///
-/// O carregamento paginado é controlado pelo [ListaPokemonBloc]; a busca
-/// continua local à tela.
+/// O carregamento paginado é controlado pelo [ListaPokemonBloc] e a busca pelo
+/// [BuscaPokemonBloc]; a tela só envia eventos e desenha os estados.
 class PokemonListScreen extends StatelessWidget {
   const PokemonListScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => ListaPokemonBloc()..add(const ListaPokemonIniciada()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => ListaPokemonBloc()..add(const ListaPokemonIniciada()),
+        ),
+        BlocProvider(create: (_) => BuscaPokemonBloc()),
+      ],
       child: const _PokemonListView(),
     );
   }
@@ -40,19 +47,7 @@ class _PokemonListView extends StatefulWidget {
 }
 
 class _PokemonListViewState extends State<_PokemonListView> {
-  /// Na PokéAPI, ids acima disso são formas alternativas (Mega, regionais...),
-  /// que já aparecem no seletor de formas da página do Pokémon.
-  static const int _maxSpeciesId = 10000;
-
-  final PokemonRepository _repository = PokemonRepository.shared;
   final ScrollController _scroll = ScrollController();
-
-  // Busca: baixa a lista completa de nomes (só uma vez, na primeira busca) e
-  // filtra localmente. Os detalhes de cada resultado são carregados sob demanda.
-  String _query = '';
-  Future<List<NamedApiResource>>? _allNames;
-
-  bool get _searching => _query.isNotEmpty;
 
   @override
   void initState() {
@@ -67,35 +62,26 @@ class _PokemonListViewState extends State<_PokemonListView> {
   }
 
   void _onScroll() {
-    if (_searching) return;
+    // Durante a busca a lista paginada não está na tela.
+    final buscando =
+        context.read<BuscaPokemonBloc>().state is! BuscaPokemonInicial;
+    if (buscando) return;
+
     if (_scroll.position.pixels >= _scroll.position.maxScrollExtent - 300) {
       context.read<ListaPokemonBloc>().add(const ListaPokemonMaisSolicitado());
     }
   }
 
-  Future<List<NamedApiResource>> _loadAllNames() async {
-    final page = await _repository.getResourceList(
-      'pokemon',
-      limit: 2000,
-      offset: 0,
-    );
-    return page.results.where((r) => (r.id ?? 0) < _maxSpeciesId).toList();
-  }
-
-  void _onSearch(String text) {
-    final q = normalizeQuery(text);
-    setState(() {
-      _query = q;
-      if (q.isNotEmpty) _allNames ??= _loadAllNames();
-    });
+  void _onSearch(String texto) {
+    context.read<BuscaPokemonBloc>().add(BuscaPokemonTextoAlterado(texto));
   }
 
   Future<void> _refresh() async {
-    final bloc = context.read<ListaPokemonBloc>();
-    setState(() => _allNames = null);
-    bloc.add(const ListaPokemonAtualizada());
+    final lista = context.read<ListaPokemonBloc>();
+    context.read<BuscaPokemonBloc>().add(const BuscaPokemonAtualizada());
+    lista.add(const ListaPokemonAtualizada());
     // Mantém o indicador do RefreshIndicator até o bloc emitir o resultado.
-    await bloc.stream.firstWhere((s) => s is! ListaPokemonCarregando);
+    await lista.stream.firstWhere((s) => s is! ListaPokemonCarregando);
   }
 
   @override
@@ -108,40 +94,40 @@ class _PokemonListViewState extends State<_PokemonListView> {
             hint: 'Buscar por nome ou número',
             onChanged: _onSearch,
           ),
-          Expanded(child: _searching ? _buildSearchResults() : _buildBody()),
+          Expanded(
+            child: BlocBuilder<BuscaPokemonBloc, BuscaPokemonState>(
+              builder: (context, busca) => busca is BuscaPokemonInicial
+                  ? _buildBody()
+                  : _buildSearchResults(busca),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildSearchResults() {
-    return FutureBuilder<List<NamedApiResource>>(
-      future: _allNames,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return _ErrorView(
-            message: 'Não foi possível carregar a lista para busca.',
-            onRetry: () => setState(() => _allNames = _loadAllNames()),
-          );
-        }
-        final results = snapshot.data!
-            .where((r) => matchesQuery(r.name, r.id, _query))
-            .toList();
-        if (results.isEmpty) {
-          return const Center(child: Text('Nenhum Pokémon encontrado.'));
-        }
-        return ListView.builder(
-          itemCount: results.length,
-          itemBuilder: (context, index) => _LazyPokemonTile(
-            key: ValueKey(results[index].name),
-            name: results[index].name,
-          ),
-        );
-      },
-    );
+  Widget _buildSearchResults(BuscaPokemonState busca) {
+    return switch (busca) {
+      BuscaPokemonInicial() || BuscaPokemonCarregando() => const Center(
+        child: CircularProgressIndicator(),
+      ),
+      BuscaPokemonErro(:final mensagem) => _ErrorView(
+        message: mensagem,
+        onRetry: () => context.read<BuscaPokemonBloc>().add(
+          const BuscaPokemonNovaTentativa(),
+        ),
+      ),
+      BuscaPokemonSucesso(:final resultados) =>
+        resultados.isEmpty
+            ? const Center(child: Text('Nenhum Pokémon encontrado.'))
+            : ListView.builder(
+                itemCount: resultados.length,
+                itemBuilder: (context, index) => _LazyPokemonTile(
+                  key: ValueKey(resultados[index].name),
+                  name: resultados[index].name,
+                ),
+              ),
+    };
   }
 
   Widget _buildBody() {
