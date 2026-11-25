@@ -9,6 +9,7 @@ import 'contests_group_screen.dart';
 import 'currency_list_screen.dart';
 import 'encounters_group_screen.dart';
 import 'evolution_group_screen.dart';
+import 'favoritos_screen.dart';
 import 'generation_list_screen.dart';
 import 'global_search_screen.dart';
 import 'item_list_screen.dart';
@@ -38,6 +39,8 @@ final _featured = _ApiGroup(
 );
 
 final _groups = <_ApiGroup>[
+  _ApiGroup('Favoritos', Icons.favorite, const Color(0xFF3A2222),
+      (_) => const FavoritosScreen()),
   _ApiGroup('Berries', Icons.eco, const Color(0xFF3A2230),
       (_) => const BerryListScreen()),
   _ApiGroup('Concursos', Icons.emoji_events, const Color(0xFF3A3322),

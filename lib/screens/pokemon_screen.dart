@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../models/models.dart';
 import '../repositories/pokemon_repository.dart';
-import '../services/pokeapi_service.dart'; // PokeApiException
+import '../services/pokeapi_service.dart'; 
 import '../utils/form_utils.dart';
 import '../utils/string_utils.dart';
 import '../widgets/evolution_tree.dart';
+import '../widgets/favorito_button.dart';
 import '../widgets/pokemon_moves_tab.dart';
 import '../widgets/sprite_gallery.dart';
 import '../widgets/stat_bar.dart';
@@ -105,6 +106,7 @@ class _PokemonScreenState extends State<PokemonScreen> {
               backgroundColor: colors[0],
               shape: const RoundedRectangleBorder(),
               title: Text(_p.species.name.pretty),
+              actions: [FavoritoButton(pokemonId: _p.id, nome: _p.name)],
             ),
             SliverToBoxAdapter(child: _buildHero(colors)),
             const SliverPersistentHeader(
